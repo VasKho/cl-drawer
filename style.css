@@ -1,0 +1,49 @@
+#window {
+    background-color: #ffffff;
+}
+
+#menu-bar {
+    background-color: #223249;
+}
+
+#button {
+    background-color: #252535;
+    border-radius: 10px;
+    border-bottom: 2px solid transparent;
+    border-color: #FFA066;
+    color: #FFA066;
+    font-size: 40px;
+}
+
+#button:hover {
+    background-color: #585858;
+    transition: all .42s ease 0s;
+}
+
+#expander-button {
+    background-color: #252535;
+    border-radius: 10px;
+    border-bottom: 2px solid transparent;
+    border-color: #FFA066;
+    color: #FFA066;
+    font-size: 16px;
+}
+
+#expander-button:hover {
+    background-color: #585858;
+    transition: all .42s ease 0s;
+}
+
+menubutton button.toggle {
+    background-color: #252535;
+    border-radius: 10px;
+    border-bottom: 2px solid transparent;
+    border-color: #FFA066;
+    color: #FFA066;
+    font-size: 40px;
+}
+
+menubutton button.toggle:hover {
+    background-color: #585858;
+    transition: all .42s ease 0s;
+}
