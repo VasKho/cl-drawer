@@ -29,5 +29,5 @@ void main() {
   float a = distance(center.x, edge.x);
   float b = distance(center.y, edge.y);
   if (a == 0. || b == 0.) { discard; }
-  gl_FragColor = vec4(vec3(hyperbola_vert(center, a, b)), 1.);
+  gl_FragColor = vec4(vec3(vertexColor.xyz), 1.-hyperbola_vert(center, a, b));
 }

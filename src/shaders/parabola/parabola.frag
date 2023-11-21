@@ -43,11 +43,13 @@ void main() {
   float dx = param.z - vertex.x;
   float dy = param.w - vertex.y;
   vec4 param_1;
+  float col;
   if (abs(dx1) > abs(dy1)) {
     param_1 = vec4(param.x+sign(dx), param.y, param.z+sign(dx), param.w);
-    gl_FragColor = vec4(vec3(parabola_hor(param_1)), 1.);
+    col = parabola_hor(param_1);
   } else if (abs(dx1) < abs(dy1)) {
     param_1 = vec4(param.x, param.y+sign(dy), param.z, param.w+sign(dy));
-    gl_FragColor = vec4(vec3(parabola_vert(param_1)), 1.);
+    col = parabola_vert(param_1);
   } else { discard; }
+  gl_FragColor = vec4(vec3(vertexColor.xyz), 1.-col);
 }
