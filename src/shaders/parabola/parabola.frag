@@ -17,8 +17,8 @@ float parabola_vert(in vec4 params) {
   float p = focus.y - vertex.y;
   float dx = coords.x - vertex.x;
   float dx_prev = dx-1.;
-  float y_prev = (dx_prev*dx_prev)/(4.*p) + vertex.y;
-  float y_perf = (dx*dx)/(4.*p) + vertex.y;    
+  float y_prev = (dx_prev*dx_prev)/(2.*p) + vertex.y;
+  float y_perf = (dx*dx)/(2.*p) + vertex.y;
   float d = dist(vec2(coords.x-1., y_prev), vec2(coords.x, y_perf), coords);
   return smoothstep(0., 1., d);
 }
@@ -30,8 +30,8 @@ float parabola_hor(in vec4 params) {
   float p = focus.x - vertex.x;
   float dy = coords.y - vertex.y;
   float dy_prev = dy-1.;
-  float x_prev = (dy_prev*dy_prev)/(4.*p) + vertex.x;
-  float x_perf = (dy*dy)/(4.*p) + vertex.x;
+  float x_prev = (dy_prev*dy_prev)/(2.*p) + vertex.x;
+  float x_perf = (dy*dy)/(2.*p) + vertex.x;
   float d = dist(vec2(x_prev, coords.y-1.), vec2(x_perf, coords.y), coords);
   return smoothstep(0., 1., d);
 }
