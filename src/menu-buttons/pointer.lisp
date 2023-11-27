@@ -1,7 +1,5 @@
 (in-package :cl-drawer)
 
-(defstruct (pointer-button (:include menu-btn)))
-
 (defun pointer-button-init ()
   (menu-button-init "button" "󰇀" "Move canvas objects" 'pointer-button-callback))
 

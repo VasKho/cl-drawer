@@ -17,5 +17,7 @@
      (:file "menu-buttons/pointer")
      (:file "menu-buttons/line")
      (:file "menu-buttons/line2")
+     (:file "menu-buttons/curves")
+     (:file "menu-buttons/clear")
      (:file "window/menu")
      (:file "window/window")))))

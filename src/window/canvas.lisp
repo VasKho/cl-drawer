@@ -132,6 +132,9 @@
   (when (or (not temp) (second (car (canvas-objects canvas))))
     (setf (canvas-objects canvas) (cdr (canvas-objects canvas)))))
 
+(defun canvas-remove-all-objects (canvas)
+  (setf (canvas-objects canvas) nil))
+
 (defun canvas-add-point (canvas point)
   (push (truncate (first point)) (canvas-reading-buffer canvas))
   (push (- (widget-height (canvas-widget canvas)) (truncate (second point))) (canvas-reading-buffer canvas))
