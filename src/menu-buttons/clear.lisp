@@ -6,6 +6,7 @@
 
 (defun clear-button-callback (button)
   (declare (ignore button))
+  (canvas-clear-points *canvas*)
   (canvas-remove-all-objects *canvas*)
   (canvas-disconnect-callback *canvas* 'pressed)
   (canvas-disconnect-callback *canvas* 'motion)

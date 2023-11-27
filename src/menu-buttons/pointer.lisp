@@ -5,5 +5,7 @@
 
 (defun pointer-button-callback (button)
   (declare (ignore button))
+  (canvas-remove-last-object *canvas* t)
   (canvas-disconnect-callback *canvas* 'pressed)
-  (canvas-disconnect-callback *canvas* 'motion))
+  (canvas-disconnect-callback *canvas* 'motion)
+  (gl-area-queue-render (canvas-widget *canvas*)))

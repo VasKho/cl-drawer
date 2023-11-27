@@ -8,6 +8,7 @@
   vao
   (reading-buffer nil :type list)
   (projection-matrix #() :type vector)
+  (model-matrix #() :type vector)
   size)
 
 (defun canvas-draw-object (canvas object)
@@ -21,6 +22,7 @@
     (gl:uniformf u-resol-location (first (canvas-size canvas)) (second (canvas-size canvas)))
     (gl:uniformf param-l (nth 0 points) (nth 1 points) (nth 4 points) (nth 5 points))
     (canvas-apply-projection-matrix canvas (drawable-object-program object))
+    (canvas-apply-model-matrix canvas (drawable-object-program object))
     (gl:bind-buffer :array-buffer (canvas-vao canvas))
     (dotimes (i (length points))
       (setf (gl:glaref arr i) (nth i points)))
@@ -109,7 +111,9 @@
     (connect can "render" render)
     (widget-add-controller can (e-controller-widget click-controller))
     (widget-add-controller can (e-controller-widget move-controller))
-    (make-canvas :widget can :event-controllers `(,click-controller ,move-controller))))
+    (make-canvas :widget can
+		 :event-controllers `(,click-controller ,move-controller)
+		 :model-matrix (canvas-init-model-matrix))))
 
 (defun canvas-connect-callback (canvas type callback)
   (cond
@@ -142,10 +146,13 @@
   (push (fourth point) (canvas-reading-buffer canvas)))
 
 (defun canvas-remove-last-point (canvas)
-  (setf (canvas-reading-buffer canvas) (nthcdr 2 (canvas-reading-buffer canvas))))
+  (setf (canvas-reading-buffer canvas) (nthcdr 4 (canvas-reading-buffer canvas))))
 
 (defun canvas-clear-points (canvas)
   (setf (canvas-reading-buffer canvas) nil))
+
+(defun canvas-set-points (canvas points)
+  (setf (canvas-reading-buffer canvas) points))
 
 (defun canvas-set-ortho-matrix (canvas left right bottom top near far)
   (let* ((a11 (/ 2.0 (- right left)))
@@ -165,3 +172,35 @@
 (defun canvas-apply-projection-matrix (canvas program)
   (let ((location (gl:get-uniform-location program "projection")))
     (gl:uniform-matrix location 4 (canvas-projection-matrix canvas))))
+
+(defun canvas-move-horizontal (canvas value)
+  (let* ((mat (aref (canvas-model-matrix canvas) 0))
+	 (el (aref mat 3)))
+    (setf (aref mat 3) (+ el value))))
+
+(defun canvas-move-vertical (canvas value)
+  (let* ((mat (aref (canvas-model-matrix canvas) 0))
+	 (el (aref mat 7)))
+    (setf (aref mat 7) (+ el value))))
+
+(defun canvas-zoom (canvas value)
+  (let* ((mat (aref (canvas-model-matrix canvas) 0))
+	 (el-x (aref mat 0))
+	 (el-y (aref mat 5))
+	 (el-z (aref mat 10)))
+    (setf (aref mat 0) (max (+ el-x value) 0))
+    (setf (aref mat 5) (max (+ el-y value) 0))
+    (setf (aref mat 10) (max (+ el-z value) 0))))
+
+(defun canvas-init-model-matrix ()
+  (let ((mat (vector (make-array 16 :adjustable nil
+				    :initial-contents
+				    '(1.0 0.0 0.0 0.0
+				      0.0 1.0 0.0 0.0
+				      0.0 0.0 1.0 0.0
+				      0.0 0.0 0.0 1.0)))))
+    mat))
+
+(defun canvas-apply-model-matrix (canvas program)
+  (let ((location (gl:get-uniform-location program "model")))
+    (gl:uniform-matrix location 4 (canvas-model-matrix canvas))))

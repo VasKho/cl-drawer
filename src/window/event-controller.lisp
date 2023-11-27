@@ -4,6 +4,10 @@
   widget
   callback-id)
 
+(defun key-event-controller-init ()
+  (let ((controller (make-event-controller-key)))
+    (make-e-controller :widget controller)))
+
 (defun click-event-controller-init ()
   (let ((controller (make-gesture-click)))
     (make-e-controller :widget controller)))

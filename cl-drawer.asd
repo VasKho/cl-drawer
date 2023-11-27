@@ -12,6 +12,7 @@
      (:file "utils/shader")
      (:file "window/drawable-object")
      (:file "window/event-controller")
+     (:file "utils/shortcuts")
      (:file "window/canvas")
      (:file "window/button")
      (:file "menu-buttons/pointer")

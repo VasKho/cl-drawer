@@ -11,3 +11,4 @@
 
 (in-package :cl-drawer)
 (defvar *canvas* nil)
+(defvar *key-manager* nil)

@@ -58,16 +58,16 @@
 	      (lambda (self x y)
 		(declare (ignore self))
 		(canvas-remove-last-object *canvas* t)
+		(setq tmp `(1 0 ,(- (widget-height (canvas-widget *canvas*)) (truncate y)) ,(truncate x)))
 		(cond
 		  ((= read-points 1)
-		   (setq tmp `(1 0 ,(- (widget-height (canvas-widget *canvas*)) (truncate y)) ,(truncate x)))
-		   (setq points `(,@tmp ,@(canvas-reading-buffer *canvas*) ,@tmp ,@(canvas-reading-buffer *canvas*))))
+		   (setq points `(,@tmp ,@tmp ,@tmp ,@(canvas-reading-buffer *canvas*))))
 		  ((= read-points 2)
-		   (setq tmp `(1 0 ,(- (widget-height (canvas-widget *canvas*)) (truncate y)) ,(truncate x)))
-		   (setq points `(,@(reverse (nthcdr 4 (reverse (canvas-reading-buffer *canvas*)))) ,@tmp ,@(canvas-reading-buffer *canvas*))))
+		   (setq points `(,@tmp ,@tmp ,@(canvas-reading-buffer *canvas*))))
 		  ((= read-points 3)
-		   (setq tmp `(1 0 ,(- (widget-height (canvas-widget *canvas*)) (truncate y)) ,(truncate x)))
-		   (setq points `(,@tmp ,@(canvas-reading-buffer *canvas*)))))
+		   (setq points `(,@tmp ,@(canvas-reading-buffer *canvas*))))
+		  (t
+		   (setq points `(,@tmp ,@(reverse (nthcdr 4 (reverse (canvas-reading-buffer *canvas*))))))))
 		(canvas-add-object *canvas*
 				   (make-drawable-object
 				    :points points
@@ -78,21 +78,21 @@
 	    (read-point
 	      (lambda (self n-press x y)
 		(declare (ignore self n-press))
-		(canvas-add-point *canvas* (list x y 0 1))
 		(incf read-points)
+		(canvas-remove-last-object *canvas* t)
 		(cond
 		  ((= read-points 1)
+		   (canvas-add-point *canvas* (list x y 0 1))
 		   (canvas-connect-callback *canvas* 'motion read-point-tmp))
-		  ((= read-points 4)
-		   (canvas-remove-last-object *canvas* t)
+		  ((< read-points 4)
+		   (canvas-add-point *canvas* (list x y 0 1)))
+		  (t
+		   (canvas-set-points *canvas* points)
 		   (canvas-add-object *canvas*
 				      (make-drawable-object
 				       :points (canvas-reading-buffer *canvas*)
 				       :program (cdr (assoc ,algo (canvas-programs *canvas*)))
 				       :primitive :lines-adjacency))
-		   (canvas-clear-points *canvas*)
-		   (canvas-disconnect-callback *canvas* 'pressed)
-		   (canvas-disconnect-callback *canvas* 'motion)
 		   (gl-area-queue-render (canvas-widget *canvas*)))))))
        (canvas-connect-callback *canvas* 'pressed read-point))))
 
