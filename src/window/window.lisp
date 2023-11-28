@@ -24,5 +24,11 @@
       (add-shortcut *key-manager* 46 (lambda () (canvas-move-horizontal *canvas* 4.0) (gl-area-queue-render (canvas-widget *canvas*))))
       (add-shortcut *key-manager* 20 (lambda () (canvas-zoom *canvas* -0.01) (gl-area-queue-render (canvas-widget *canvas*))))
       (add-shortcut *key-manager* 21 (lambda () (canvas-zoom *canvas* 0.01) (gl-area-queue-render (canvas-widget *canvas*))))
+      (add-shortcut *key-manager* 24 (lambda () (canvas-rot-z *canvas* 0.01) (gl-area-queue-render (canvas-widget *canvas*))));;q
+      (add-shortcut *key-manager* 26 (lambda () (canvas-rot-z *canvas* -0.01) (gl-area-queue-render (canvas-widget *canvas*))));;e
+      (add-shortcut *key-manager* 25 (lambda () (canvas-rot-x *canvas* 0.01) (gl-area-queue-render (canvas-widget *canvas*))));;w
+      (add-shortcut *key-manager* 39 (lambda () (canvas-rot-x *canvas* -0.01) (gl-area-queue-render (canvas-widget *canvas*))));;s
+      (add-shortcut *key-manager* 38 (lambda () (canvas-rot-y *canvas* -0.01) (gl-area-queue-render (canvas-widget *canvas*))));;a
+      (add-shortcut *key-manager* 40 (lambda () (canvas-rot-y *canvas* 0.01) (gl-area-queue-render (canvas-widget *canvas*))));;d
       (unless (widget-visible-p window)
 	(window-present window))))

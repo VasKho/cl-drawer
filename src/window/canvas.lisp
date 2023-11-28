@@ -8,7 +8,10 @@
   vao
   (reading-buffer nil :type list)
   (projection-matrix #() :type vector)
-  (model-matrix #() :type vector)
+  (trans-scale-matrix #() :type vector)
+  (x-rot-matrix #() :type vector)
+  (y-rot-matrix #() :type vector)
+  (z-rot-matrix #() :type vector)
   size)
 
 (defun canvas-draw-object (canvas object)
@@ -22,7 +25,10 @@
     (gl:uniformf u-resol-location (first (canvas-size canvas)) (second (canvas-size canvas)))
     (gl:uniformf param-l (nth 0 points) (nth 1 points) (nth 4 points) (nth 5 points))
     (canvas-apply-projection-matrix canvas (drawable-object-program object))
-    (canvas-apply-model-matrix canvas (drawable-object-program object))
+    (canvas-apply-trans-scale-matrix canvas (drawable-object-program object))
+    (canvas-apply-x-rot-matrix canvas (drawable-object-program object))
+    (canvas-apply-y-rot-matrix canvas (drawable-object-program object))
+    (canvas-apply-z-rot-matrix canvas (drawable-object-program object))
     (gl:bind-buffer :array-buffer (canvas-vao canvas))
     (dotimes (i (length points))
       (setf (gl:glaref arr i) (nth i points)))
@@ -90,7 +96,7 @@
 	   (lambda (area width height)
 	     (declare (ignore area))
 	     (setf (canvas-size *canvas*) (list width height))
-	     (canvas-set-ortho-matrix *canvas* 0 width 0 height 0 1)
+	     (canvas-set-ortho-matrix *canvas* 0 width 0 height 0 1000)
 	     (gl:viewport 0 0 width height)))
 	 (render
 	   (lambda (area context)
@@ -113,7 +119,10 @@
     (widget-add-controller can (e-controller-widget move-controller))
     (make-canvas :widget can
 		 :event-controllers `(,click-controller ,move-controller)
-		 :model-matrix (canvas-init-model-matrix))))
+		 :trans-scale-matrix (canvas-init-trans-scale-matrix)
+		 :x-rot-matrix (canvas-init-x-rot-matrix)
+		 :y-rot-matrix (canvas-init-y-rot-matrix)
+		 :z-rot-matrix (canvas-init-z-rot-matrix))))
 
 (defun canvas-connect-callback (canvas type callback)
   (cond
@@ -173,26 +182,7 @@
   (let ((location (gl:get-uniform-location program "projection")))
     (gl:uniform-matrix location 4 (canvas-projection-matrix canvas))))
 
-(defun canvas-move-horizontal (canvas value)
-  (let* ((mat (aref (canvas-model-matrix canvas) 0))
-	 (el (aref mat 3)))
-    (setf (aref mat 3) (+ el value))))
-
-(defun canvas-move-vertical (canvas value)
-  (let* ((mat (aref (canvas-model-matrix canvas) 0))
-	 (el (aref mat 7)))
-    (setf (aref mat 7) (+ el value))))
-
-(defun canvas-zoom (canvas value)
-  (let* ((mat (aref (canvas-model-matrix canvas) 0))
-	 (el-x (aref mat 0))
-	 (el-y (aref mat 5))
-	 (el-z (aref mat 10)))
-    (setf (aref mat 0) (max (+ el-x value) 0))
-    (setf (aref mat 5) (max (+ el-y value) 0))
-    (setf (aref mat 10) (max (+ el-z value) 0))))
-
-(defun canvas-init-model-matrix ()
+(defun canvas-init-trans-scale-matrix ()
   (let ((mat (vector (make-array 16 :adjustable nil
 				    :initial-contents
 				    '(1.0 0.0 0.0 0.0
@@ -201,6 +191,103 @@
 				      0.0 0.0 0.0 1.0)))))
     mat))
 
-(defun canvas-apply-model-matrix (canvas program)
-  (let ((location (gl:get-uniform-location program "model")))
-    (gl:uniform-matrix location 4 (canvas-model-matrix canvas))))
+(defun canvas-apply-trans-scale-matrix (canvas program)
+  (let ((location (gl:get-uniform-location program "trans_scale")))
+    (gl:uniform-matrix location 4 (canvas-trans-scale-matrix canvas))))
+
+(defun canvas-move-horizontal (canvas value)
+  (let* ((mat (aref (canvas-trans-scale-matrix canvas) 0))
+	 (el (aref mat 3)))
+    (setf (aref mat 3) (+ el value))))
+
+(defun canvas-move-vertical (canvas value)
+  (let* ((mat (aref (canvas-trans-scale-matrix canvas) 0))
+	 (el (aref mat 7)))
+    (setf (aref mat 7) (+ el value))))
+
+(defun canvas-zoom (canvas value)
+  (let* ((mat (aref (canvas-trans-scale-matrix canvas) 0))
+	 (el-x (aref mat 0))
+	 (el-y (aref mat 5))
+	 (el-z (aref mat 10)))
+    (setf (aref mat 0) (max (+ el-x value) 0))
+    (setf (aref mat 5) (max (+ el-y value) 0))
+    (setf (aref mat 10) (max (+ el-z value) 0))))
+
+(defun canvas-init-x-rot-matrix ()
+  (let ((mat (vector (make-array 16 :adjustable nil
+				    :initial-contents
+				    '(1.0 0.0 0.0 0.0
+				      0.0 1.0 0.0 0.0
+				      0.0 0.0 1.0 0.0
+				      0.0 0.0 0.0 1.0)))))
+    mat))
+
+(defun canvas-apply-x-rot-matrix (canvas program)
+  (let ((location (gl:get-uniform-location program "x_rot")))
+    (gl:uniform-matrix location 4 (canvas-x-rot-matrix canvas))))
+
+(defun canvas-rot-x (canvas angle)
+  (let* ((mat (aref (canvas-x-rot-matrix canvas) 0))
+	 (s (sin angle))
+	 (c (cos angle))
+	 (old-s (aref mat 9))
+	 (old-c (aref mat 5))
+	 (new-s (+ (* old-s c) (* old-c s)))
+	 (new-c (- (* old-c c) (* old-s s))))
+    (setf (aref mat 5) new-c)
+    (setf (aref mat 6) (- new-s))
+    (setf (aref mat 9) new-s)
+    (setf (aref mat 10) new-c)))
+
+(defun canvas-init-y-rot-matrix ()
+  (let ((mat (vector (make-array 16 :adjustable nil
+				    :initial-contents
+				    '(1.0 0.0 0.0 0.0
+				      0.0 1.0 0.0 0.0
+				      0.0 0.0 1.0 0.0
+				      0.0 0.0 0.0 1.0)))))
+    mat))
+
+(defun canvas-apply-y-rot-matrix (canvas program)
+  (let ((location (gl:get-uniform-location program "y_rot")))
+    (gl:uniform-matrix location 4 (canvas-y-rot-matrix canvas))))
+
+(defun canvas-rot-y (canvas angle)
+  (let* ((mat (aref (canvas-y-rot-matrix canvas) 0))
+	 (s (sin angle))
+	 (c (cos angle))
+	 (old-s (aref mat 2))
+	 (old-c (aref mat 0))
+	 (new-s (+ (* old-s c) (* old-c s)))
+	 (new-c (- (* old-c c) (* old-s s))))
+    (setf (aref mat 0) new-c)
+    (setf (aref mat 2) new-s)
+    (setf (aref mat 8) (- new-s))
+    (setf (aref mat 10) new-c)))
+
+(defun canvas-init-z-rot-matrix ()
+  (let ((mat (vector (make-array 16 :adjustable nil
+				    :initial-contents
+				    '(1.0 0.0 0.0 0.0
+				      0.0 1.0 0.0 0.0
+				      0.0 0.0 1.0 0.0
+				      0.0 0.0 0.0 1.0)))))
+    mat))
+
+(defun canvas-apply-z-rot-matrix (canvas program)
+  (let ((location (gl:get-uniform-location program "z_rot")))
+    (gl:uniform-matrix location 4 (canvas-z-rot-matrix canvas))))
+
+(defun canvas-rot-z (canvas angle)
+  (let* ((mat (aref (canvas-z-rot-matrix canvas) 0))
+	 (s (sin angle))
+	 (c (cos angle))
+	 (old-s (aref mat 4))
+	 (old-c (aref mat 0))
+	 (new-s (+ (* old-s c) (* old-c s)))
+	 (new-c (- (* old-c c) (* old-s s))))
+    (setf (aref mat 0) new-c)
+    (setf (aref mat 1) (- new-s))
+    (setf (aref mat 4) new-s)
+    (setf (aref mat 5) new-c)))

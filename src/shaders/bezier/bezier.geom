@@ -13,9 +13,6 @@ void main() {
   vec2 p2 = gl_in[2].gl_Position.xy;
   vec2 p3 = gl_in[3].gl_Position.xy;
 
-  // if (p1 != p2) p2 *= 2;
-  // if (p4 != p3) p3 *= 2;
-
   vec4 first = mtx * vec4(p1.x, p2.x, p3.x, p4.x);
   vec4 second = mtx * vec4(p1.y, p2.y, p3.y, p4.y);
 
