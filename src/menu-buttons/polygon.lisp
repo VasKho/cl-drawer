@@ -47,7 +47,21 @@
 	(canvas-disconnect-callback *canvas* 'pressed)
 	(canvas-disconnect-callback *canvas* 'motion)
 	(gl-area-queue-render (canvas-widget *canvas*))
-	(remove-shortcut *key-manager* 27)))))
+	(remove-shortcut *key-manager* 27))
+       (add-shortcut
+	*key-manager* 41
+	(canvas-remove-last-object *canvas* t)
+	(canvas-add-object *canvas*
+			   (make-drawable-object
+			    :max-points (/ (length (canvas-reading-buffer *canvas*)) 4)
+			    :points (canvas-reading-buffer *canvas*)
+			    :program (cdr (assoc :filled-polygon (canvas-programs *canvas*)))
+			    :primitive :triangle-fan))
+	(canvas-clear-points *canvas*)
+	(canvas-disconnect-callback *canvas* 'pressed)
+	(canvas-disconnect-callback *canvas* 'motion)
+	(gl-area-queue-render (canvas-widget *canvas*))
+	(remove-shortcut *key-manager* 41)))))
 
 (defun polygon-menu-button-init ()
   (menu-button-init
