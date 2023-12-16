@@ -9,5 +9,6 @@
     (box-append mn (menu-btn-widget (line-menu-button-init)))
     (box-append mn (menu-btn-widget (line2-menu-button-init)))
     (box-append mn (menu-btn-widget (curves-menu-button-init)))
+    (box-append mn (menu-btn-widget (polygon-menu-button-init)))
     (box-append mn (menu-btn-widget (clear-button-init)))
     (make-menu :widget mn)))

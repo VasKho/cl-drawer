@@ -16,6 +16,11 @@
     (event-controller-connect-callback key-controller 'main-shortcut-callback 'key-pressed)
     (make-key-manager :controller key-controller)))
 
-(defun add-shortcut (manager keycode callback)
+(defmacro add-shortcut (manager keycode &rest body)
+  `(let ((callback (lambda () ,@body)))
+     (setf (key-manager-shortcuts ,manager)
+	   (acons ,keycode callback (key-manager-shortcuts ,manager)))))
+
+(defun remove-shortcut (manager keycode)
   (setf (key-manager-shortcuts manager)
-	(acons keycode callback (key-manager-shortcuts manager))))
+	(remove-if (lambda (el) (= (car el) keycode)) (key-manager-shortcuts manager))))

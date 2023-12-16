@@ -64,12 +64,11 @@
 		   (setq points `(,@tmp ,@tmp ,@tmp ,@(canvas-reading-buffer *canvas*))))
 		  ((= read-points 2)
 		   (setq points `(,@tmp ,@tmp ,@(canvas-reading-buffer *canvas*))))
-		  ((= read-points 3)
-		   (setq points `(,@tmp ,@(canvas-reading-buffer *canvas*))))
 		  (t
-		   (setq points `(,@tmp ,@(reverse (nthcdr 4 (reverse (canvas-reading-buffer *canvas*))))))))
+		   (setq points `(,@tmp ,@(canvas-reading-buffer *canvas*)))))
 		(canvas-add-object *canvas*
 				   (make-drawable-object
+				    :offset-params `(1 ,(- (/ (length points) 4) 3))
 				    :points points
 				    :program (cdr (assoc ,algo (canvas-programs *canvas*)))
 				    :primitive :lines-adjacency)
@@ -80,21 +79,80 @@
 		(declare (ignore self n-press))
 		(incf read-points)
 		(canvas-remove-last-object *canvas* t)
+		(canvas-add-point *canvas* (list x y 0 1))
 		(cond
 		  ((= read-points 1)
-		   (canvas-add-point *canvas* (list x y 0 1))
-		   (canvas-connect-callback *canvas* 'motion read-point-tmp))
-		  ((< read-points 4)
-		   (canvas-add-point *canvas* (list x y 0 1)))
+		   (canvas-connect-callback *canvas* 'motion read-point-tmp))))))
+       (canvas-connect-callback *canvas* 'pressed read-point)
+       (add-shortcut
+	*key-manager* 27
+	(canvas-remove-last-object *canvas* t)
+	(canvas-add-object *canvas*
+			   (make-drawable-object
+			    :offset-params `(1 ,(- (/ (length points) 4) 3))
+			    :points (canvas-reading-buffer *canvas*)
+			    :program (cdr (assoc ,algo (canvas-programs *canvas*)))
+			    :primitive :lines-adjacency))
+	(canvas-clear-points *canvas*)
+	(canvas-disconnect-callback *canvas* 'pressed)
+	(canvas-disconnect-callback *canvas* 'motion)
+	(gl-area-queue-render (canvas-widget *canvas*))
+	(remove-shortcut *key-manager* 27)))))
+
+(defmacro closed-b-spline-button-callback (algo)
+  `(lambda (button)
+     (declare (ignore button))
+     (let* ((read-points 0)
+	    (points nil)
+	    (tmp nil)
+	    (read-point-tmp
+	      (lambda (self x y)
+		(declare (ignore self))
+		(canvas-remove-last-object *canvas* t)
+		(setq tmp `(1 0 ,(- (widget-height (canvas-widget *canvas*)) (truncate y)) ,(truncate x)))
+		(cond
+		  ((= read-points 1)
+		   (setq points `(,@tmp ,@tmp ,@tmp ,@(canvas-reading-buffer *canvas*))))
+		  ((= read-points 2)
+		   (setq points `(,@tmp ,@tmp ,@(canvas-reading-buffer *canvas*))))
 		  (t
-		   (canvas-set-points *canvas* points)
-		   (canvas-add-object *canvas*
-				      (make-drawable-object
-				       :points (canvas-reading-buffer *canvas*)
-				       :program (cdr (assoc ,algo (canvas-programs *canvas*)))
-				       :primitive :lines-adjacency))
-		   (gl-area-queue-render (canvas-widget *canvas*)))))))
-       (canvas-connect-callback *canvas* 'pressed read-point))))
+		   (setq points `(,@tmp ,@(canvas-reading-buffer *canvas*)))))
+		(canvas-add-object *canvas*
+				   (make-drawable-object
+				    :offset-params `(1 ,(- (/ (length points) 4) 3))
+				    :points points
+				    :program (cdr (assoc ,algo (canvas-programs *canvas*)))
+				    :primitive :lines-adjacency)
+				   t)
+		(gl-area-queue-render (canvas-widget *canvas*))))
+	    (read-point
+	      (lambda (self n-press x y)
+		(declare (ignore self n-press))
+		(incf read-points)
+		(canvas-remove-last-object *canvas* t)
+		(canvas-add-point *canvas* (list x y 0 1))
+		(cond
+		  ((= read-points 1)
+		   (canvas-connect-callback *canvas* 'motion read-point-tmp))))))
+       (canvas-connect-callback *canvas* 'pressed read-point)
+       (add-shortcut
+	*key-manager* 27
+	(canvas-set-points
+	 *canvas*
+	 `(,@(nthcdr (- (length (canvas-reading-buffer *canvas*)) 12) (canvas-reading-buffer *canvas*))
+	   ,@(canvas-reading-buffer *canvas*)))
+	(canvas-remove-last-object *canvas* t)
+	(canvas-add-object *canvas*
+			   (make-drawable-object
+			    :offset-params `(1 ,(/ (length points) 4))
+			    :points (canvas-reading-buffer *canvas*)
+			    :program (cdr (assoc ,algo (canvas-programs *canvas*)))
+			    :primitive :lines-adjacency))
+	(canvas-clear-points *canvas*)
+	(canvas-disconnect-callback *canvas* 'pressed)
+	(canvas-disconnect-callback *canvas* 'motion)
+	(gl-area-queue-render (canvas-widget *canvas*))
+	(remove-shortcut *key-manager* 27)))))
 
 (defun curves-menu-button-init ()
   (menu-expander-init
@@ -113,4 +171,4 @@
        "expander-button"
        "Closed B-spline"
        "Draw closed B-spline curve"
-       (b-spline-button-callback :parabola)))))
+       (closed-b-spline-button-callback :b-spline)))))
